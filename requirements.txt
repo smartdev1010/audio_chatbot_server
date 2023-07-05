@@ -1,0 +1,13 @@
+langchain
+flask
+flask_cors
+faiss-cpu
+openai
+PyPDF2
+python-dotenv
+pandas
+gunicorn
+whisper
+moviepy
+tiktoken
+youtube-transcript-api
