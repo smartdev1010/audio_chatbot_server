@@ -29,46 +29,60 @@ def chatgpt(query: str, user, industry, c_size, c_title, type, history):
             The conversation will be in a typical sales call format. You have shown initial interest in our product, but you're not fully convinced yet. You will have questions and concerns about its functionality, pricing, implementation, and support. The goal of this exercise is to simulate a realistic customer conversation, allowing the Account Executive, """ + user + """, to practice handling objections and articulating value propositions.
             At the end of this exercise, you will be asked to provide feedback and coaching on the Account Executive's performance during the call. Until then, please focus on responding in a manner consistent with your given role.
             """
+        messages = [{
+            "role": "system",
+            "content": content,
+        }]
         for item in history:
-            print(item)
             if item["type"] == "user":
-                content = content + user + ":"+item["value"]+"\n"
+                messages.append({
+                    "role": "user",
+                    "content": item["value"]
+                })
             else:
-                content = content + "Alex:" + item["value"]+"\n"
-        print(content)
+                messages.append({
+                    "role": "assistant",
+                    "content": item["value"]
+                })
+        messages.append({"role": "user", "content": query})
+        print(messages)
         completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo-16k",
             temperature=0,
-            messages=[
-                {
-                    "role": "system",
-                    "content": content,
-                },
-                {"role": "user", "content": query},
-            ],
+            messages=messages,
         )
         ans_docqa = completion.choices[0].message.content
         return ans_docqa
     else:
+        content = """
+            Alex, thank you for participating in the sales call simulation. As part of your role, we're now asking you to provide feedback and coaching opportunities based on the call. Please consider the following areas and provide brief, specific feedback where you see opportunities for improvement and what went well: 
+            Understanding Customer Needs and Building Rapport: Did the Account Executive, """ + user + """, ask relevant questions to fully understand your company's needs and challenges? Did they effectively build a rapport and establish a relationship with you during the conversation?
+            Product Knowledge: How effectively did """ + user + """ demonstrate knowledge about the product's features and benefits?
+            Handling Objections: How well did """ + user + """ address your concerns and objections throughout the call?
+            Communication Skills: How clear, concise, and persuasive was """ + user + """ in their communication? Did they exhibit skills conducive to building rapport, such as active listening and empathy?
+            Closing the Deal/Setting Next Steps: How well did """ + user + """ work towards a close or establish clear next steps in the sales process?
+            Professionalism: Did """ + user + """ maintain a professional demeanor throughout the call?
+            Please remember, it's not necessary to provide feedback on every point or question. These are juts guides to help you deliver concise and actionable coaching based on the sales call simulation with """ + user
+        messages = [{
+            "role": "system",
+            "content": content,
+        }]
+        for item in history:
+            if item["type"] == "user":
+                messages.append({
+                    "role": "user",
+                    "content": item["value"]
+                })
+            else:
+                messages.append({
+                    "role": "assistant",
+                    "content": item["value"]
+                })
+
         completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo-16k",
             temperature=0,
-            messages=[
-                {
-                    "role": "system",
-                    "content": """
-                        System: Alex, thank you for participating in the sales call simulation. As part of your role, we're now asking you to provide feedback and coaching opportunities based on the call. Please consider the following areas:
-Understanding Customer Needs and Building Rapport: Did the Account Executive, """ + user + """, ask relevant questions to fully understand your company's needs and challenges? Did they effectively build a rapport and establish a relationship with you during the conversation?
-Product Knowledge: How effectively did """ + user + """ demonstrate knowledge about the product's features and benefits?
-Handling Objections: How well did """ + user + """ address your concerns and objections throughout the call?
-Communication Skills: How clear, concise, and persuasive was """ + user + """ in their communication? Did they exhibit skills conducive to building rapport, such as active listening and empathy?
-Closing the Deal/Setting Next Steps: How well did """ + user + """ work towards a close or establish clear next steps in the sales process?
-Professionalism: Did """ + user + """ maintain a professional demeanor throughout the call?
-Don't consider every area, or answer every question. These are just to guide you in providing clear, concise and actionable coaching and feedback based on the sales call simulation you just experienced.
-                        """,
-                },
-                {"role": "user", "content": ""},
-            ],
+            messages=messages,
         )
         ans_docqa = completion.choices[0].message.content
         return ans_docqa
@@ -105,10 +119,7 @@ def chat2():
     c_size = request.form["c_size"]
     c_title = request.form["c_title"]
     type = request.form["type"]
-    if type == "0":
-        history = json.loads(request.form["history"])
-    else:
-        history = []
+    history = json.loads(request.form["history"])
     result = chatgpt(query, user, industry, c_size, c_title, type, history)
 
     return {"state": "success", "answer": result}
